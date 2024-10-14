@@ -19,8 +19,32 @@ let yFungi;
 let imageArray;
 let currentImage = 0;
 
+let limitParticles = true;
+let limit = 100;
+let debugView = true;
+let mask;
+let corners = [
+  {
+    x: 141,
+    y: 120,
+  },
+  {
+    x: 1070,
+    y: 114,
+  },
+  {
+    x: 1078,
+    y: 727,
+  },
+  {
+    x: 185,
+    y: 790,
+  },
+];
+
 function setup() {
   createCanvas(windowWidth, windowHeight);
+  updateMask();
   select("canvas").style("border", "none");
 
   //socket = socket.io.connect('http://localhost:3000');
@@ -243,19 +267,19 @@ function generateSystems() {
 }
 
 function draw() {
-  background(0, 20);
+  background(0, 5);
 
   for (let i = 0; i < data.length; i++) {
     if (data[i].Module == currentImage) {
-      let n = 10;
+      let n = 30;
       if (data[i].Function == "AM") {
-        n = 10;
+        n = 30;
       }
       if (data[i].Function == "Unknown") {
-        n = 40;
+        n = 60;
       }
       if (data[i].Function == "EcM") {
-        n = 1;
+        n = 3;
       }
       if (frameCount % n == 0) {
         // systems[i].addParticle();
@@ -290,6 +314,62 @@ function draw() {
       ellipse(xPlant, yPlant, 10);
     }
   }
+
+  // Apply the mask
+  image(mask, 0, 0);
+
+  if (debugView) {
+    // Draw the corners for reference
+    fill(0, 255, 0);
+    for (let i = 0; i < corners.length; i++) {
+      ellipse(corners[i].x, corners[i].y, 10, 10);
+      text(i + 1, corners[i].x + 15, corners[i].y + 15);
+    }
+
+    fill(0);
+    rect(20, 20, 100, 50);
+    fill(255, 0, 0);
+
+    text(frameRate(), 50, 50);
+  }
+}
+
+function updateMask() {
+  mask = createGraphics(width, height);
+  mask.fill(0);
+  mask.rect(0, 0, width, height);
+  mask.erase();
+  mask.beginShape();
+  for (let corner of corners) {
+    mask.vertex(corner.x, corner.y);
+  }
+  mask.endShape(CLOSE);
+  mask.noErase();
+}
+
+function keyPressed() {
+  if (key >= "1" && key <= "4") {
+    let index = int(key) - 1;
+    corners[index] = { x: mouseX, y: mouseY };
+    updateMask();
+  } else if (key === "s" || key === "S") {
+    saveJSON(corners, "corners.json");
+    console.log("Corners saved to corners.json");
+  }
+
+  if (key == "d") {
+    debugView = false;
+  }
+  if (key == "D") {
+    debugView = true;
+  }
+
+  if (key == "l") {
+    limitParticles = false;
+  }
+  if (key == "L") {
+    limitParticles = true;
+  }
 }
 
 class ParticleSystem {
@@ -300,6 +380,9 @@ class ParticleSystem {
     this.stroke = s;
     this.color = c;
     this.module = modules;
+    this.img = createGraphics(s, s);
+    this.img.fill(this.color);
+    this.img.ellipse(0, 0, this.stroke);
   }
 
   deleteParticles() {
@@ -307,11 +390,17 @@ class ParticleSystem {
   }
 
   addParticle() {
-    let p = new Particle(this.end, this.start, this.stroke, this.color, this.module);
-    this.particles.push(p);
-
-    fill(this.color);
-    ellipse(this.start.x, this.start.y, 3);
+    if (limitParticles) {
+      if (this.particles.length < limit) {
+        let p = new Particle(this.end, this.start, this.stroke, this.color, this.module);
+        this.particles.push(p);
+      }
+    } else {
+      let p = new Particle(this.end, this.start, this.stroke, this.color, this.module);
+      this.particles.push(p);
+    }
+    // fill(this.color);
+    // ellipse(this.start.x, this.start.y, 3);
   }
   run() {
     fill(this.color);
@@ -322,6 +411,16 @@ class ParticleSystem {
       p.update();
       p.display();
 
+      // // Determine which half of particles to render this frame
+      // if (i % 2 === frameCount % 2) {
+      //   p.display();
+      // }
+
+      /*push();
+      translate(p.pos.x, p.pos.y);
+      // scale(10);
+      image(this.img, 0, 0);
+      pop();*/
       if (p.isDead()) {
         this.particles.splice(i, 1);
       }
@@ -330,11 +429,12 @@ class ParticleSystem {
         this.particles.splice(i, 1);
       }
     }
+    console.log(this.particles.length);
   }
 }
 
 class Particle {
-  constructor(v1, v2, s, c, modules) {
+  constructor(v1, v2, s, c, modules, img) {
     this.start = v2;
     this.end = v1;
     this.maxSpeed = 1;
@@ -395,11 +495,5 @@ class Particle {
 
   hasReachedEnd() {
     return this.hasReached;
-  }
-}
-
-function keyPressed() {
-  if (key == "s") {
-    saveCanvas("fungi", "png");
   }
 }
