@@ -26,68 +26,66 @@ let mask;
 let offScreen;
 
 let particleImage;
-let images=[];
+let images = [];
 
 let corners = [
   {
-    "x": 0,
-    "y": 0
+    x: 0,
+    y: 0,
   },
   {
-    "x": 2556,
-    "y": 11
+    x: 2556,
+    y: 11,
   },
   {
-    "x": 2509,
-    "y": 1371
+    x: 2509,
+    y: 1371,
   },
   {
-    "x": 56,
-    "y": 1388
-  }
+    x: 56,
+    y: 1388,
+  },
 ];
 
 function setup() {
-  pixelDensity(1)
+  pixelDensity(1);
   createCanvas(windowWidth, windowHeight);
   updateMask();
   select("canvas").style("border", "none");
 
-
   "#E8C9FF", // Button 1
-  "#8DD8FF", // Button 2
-  "#7FFF99", // Button 3 (more green)
-  "#FFEE80", // Button 4 (more yellow)
-  "#FFB073", // Button 5
-  "#FF7373", // Button 6
-  "#D86AFF", // Button 7
-  "#73B2FF", // Button 8
+    "#8DD8FF", // Button 2
+    "#7FFF99", // Button 3 (more green)
+    "#FFEE80", // Button 4 (more yellow)
+    "#FFB073", // Button 5
+    "#FF7373", // Button 6
+    "#D86AFF", // Button 7
+    "#73B2FF", // Button 8
+    (particleImage = loadImage("E8C9FF.png"));
+  images.push(particleImage);
 
-  particleImage=loadImage("E8C9FF.png")
-  images.push(particleImage)
+  particleImage = loadImage("8DD8FF.png");
+  images.push(particleImage);
 
-  particleImage=loadImage("8DD8FF.png")
-  images.push(particleImage)
+  particleImage = loadImage("7FFF99.png");
+  images.push(particleImage);
 
-  particleImage=loadImage("7FFF99.png")
-  images.push(particleImage)
+  particleImage = loadImage("FFEE80.png");
+  images.push(particleImage);
 
-  particleImage=loadImage("FFEE80.png")
-  images.push(particleImage)
+  particleImage = loadImage("FFB073.png");
+  images.push(particleImage);
 
-  particleImage=loadImage("FFB073.png")
-  images.push(particleImage)
+  particleImage = loadImage("FF7373.png");
+  images.push(particleImage);
 
-  particleImage=loadImage("FF7373.png")
-  images.push(particleImage)
+  particleImage = loadImage("D86AFF.png");
+  images.push(particleImage);
 
-  particleImage=loadImage("D86AFF.png")
-  images.push(particleImage)
+  particleImage = loadImage("73B2FF.png");
+  images.push(particleImage);
 
-  particleImage=loadImage("73B2FF.png")
-  images.push(particleImage)
-
-  offScreen=createGraphics(windowWidth/2,windowHeight/2)
+  offScreen = createGraphics(windowWidth / 2, windowHeight / 2);
 
   //socket = socket.io.connect('http://localhost:3000');
   socket = io.connect("https://dda-miflck.herokuapp.com/");
@@ -207,12 +205,11 @@ function setup() {
 
 function windowResized() {
   resizeCanvas(windowWidth, windowHeight);
-  offScreen=createGraphics(windowWidth/2, windowHeight/2)
+  offScreen = createGraphics(windowWidth / 2, windowHeight / 2);
   console.log("resize!", windowWidth, windowHeight);
 
   generateSystems();
   updateMask();
-
 }
 
 function generateRandomY() {
@@ -298,16 +295,26 @@ function generateSystems() {
       //let yFungi = yScaleFungi(fungi);
       //let s = data[i].Connection * 0.9;
       let s = strokeScale(data[i].Connection);
-      console.log("mod",modules)
+      console.log("mod", modules);
       let c = cScale(modules);
 
       v1 = createVector(xPlant, yPlant);
       v2 = createVector(xFungi, yFungi);
 
-      let tImg=createImage(10,10)
-      tImg.copy(particleImage,0,0,particleImage.width,particleImage.height,0,0,particleImage.width,particleImage.height)
+      let tImg = createImage(10, 10);
+      tImg.copy(
+        particleImage,
+        0,
+        0,
+        particleImage.width,
+        particleImage.height,
+        0,
+        0,
+        particleImage.width,
+        particleImage.height
+      );
       //tImg.tint(255,0,0)
-      let ps = new ParticleSystem(v1, v2, s, c, modules,images[modules-1]);
+      let ps = new ParticleSystem(v1, v2, s, c, modules, images[modules - 1]);
 
       systems.push(ps);
     }
@@ -316,7 +323,7 @@ function generateSystems() {
 }
 
 function draw() {
-  background(0, 5);
+  background(0, 10);
 
   for (let i = 0; i < data.length; i++) {
     if (data[i].Module == currentImage) {
@@ -422,15 +429,14 @@ function keyPressed() {
 }
 
 class ParticleSystem {
-  constructor(v1, v2, s, c, modules,img) {
-    this.start = v2//.mult(1/2);
-    this.end = v1//.mult(1/2);
+  constructor(v1, v2, s, c, modules, img) {
+    this.start = v2; //.mult(1/2);
+    this.end = v1; //.mult(1/2);
     this.particles = [];
-    this.stroke = s//2;
+    this.stroke = s; //2;
     this.color = c;
     this.module = modules;
-    this.img = img
-   
+    this.img = img;
   }
 
   deleteParticles() {
@@ -451,30 +457,29 @@ class ParticleSystem {
     // ellipse(this.start.x, this.start.y, 3);
   }
   run() {
-    push()
+    push();
     fill(this.color);
     ellipse(this.start.x, this.start.y, 3);
-   // scale(2)
+    // scale(2)
 
     for (let i = 0; i < this.particles.length; i++) {
       let p = this.particles[i];
       //if (i % 3 === frameCount % 3) {
 
       p.update();
-        //         }
+      //         }
       //p.display();
 
       // Determine which half of particles to render this frame
       if (i % 2 === frameCount % 2) {
-       
-      //  scale(2)
-       // p.display();
+        //  scale(2)
+        // p.display();
         //image(this.img, 0, 0);
-        push()
-        translate(p.pos.x, p.pos.y)
-        scale(this.stroke/10)
-        image(this.img,0,0)
-        pop()
+        push();
+        translate(p.pos.x, p.pos.y);
+        scale(this.stroke / 10);
+        image(this.img, 0, 0);
+        pop();
       }
 
       /*push();
@@ -490,7 +495,7 @@ class ParticleSystem {
         this.particles.splice(i, 1);
       }
     }
-    pop()
+    pop();
   }
 }
 
@@ -528,7 +533,7 @@ class Particle {
       this.n = 0;
     }
 
-    let noiseValue = noise(this.pos.x * 0.10, this.pos.y * 0.1);
+    let noiseValue = noise(this.pos.x * 0.1, this.pos.y * 0.1);
     let theta = map(noiseValue, 0, 1, -this.n, this.n);
 
     this.pos.y += theta;
